@@ -1,0 +1,1 @@
+java -cp build Server.ThreadedServer

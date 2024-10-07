@@ -1,0 +1,1 @@
+javac -d build src/GUI/* src/Server/* src/Game/*
