@@ -30,6 +30,6 @@ public class ThreadedServer {
     }
 
     public static void main(String[] args) {
-        new ThreadedServer(1024);
+        new ThreadedServer(1080);
     }
 }

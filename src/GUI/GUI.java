@@ -19,8 +19,8 @@ class Render extends JPanel {
 
     TicTacToe tacToe;
 
-    public Render(TicTacToe connectFour){
-        tacToe = connectFour;
+    public Render(TicTacToe ttt){
+        tacToe = ttt;
     }
 
     public void paint(Graphics g){
@@ -34,7 +34,10 @@ class Render extends JPanel {
         drawText(g);
     }
 
-
+    /**
+     * add the text to the window
+     * @param g
+     */
     public void drawText(Graphics g){
         Graphics2D g2d = (Graphics2D) g;
 
@@ -62,7 +65,10 @@ class Render extends JPanel {
         }
     }
 
-
+    /**
+     * make the grid and determine the colours
+     * @param g
+     */
     public void makeGrid(Graphics g){
 
         Graphics2D g2d = (Graphics2D) g;
@@ -125,7 +131,10 @@ public class GUI extends JFrame {
         repaint();
     }
 
-
+    /**
+     * spawn the play again box to determine
+     * @return status message of what user clicked
+     */
     public Status SpawnPlayAgainBox(){
         String message = "Would you like to play again?";
         int answer = JOptionPane.showConfirmDialog(this, message);
@@ -138,7 +147,9 @@ public class GUI extends JFrame {
     }
 
 
-
+    /**
+     * add the buttons to the GUI
+     */
     private void addButtons(){
 
         b = new JButton[9];
@@ -172,4 +183,6 @@ public class GUI extends JFrame {
             }
         }
     }
+
+
 }

@@ -74,8 +74,6 @@ public class ConnectionThread extends Thread{
                         Thread.sleep(10);
                     }catch (Exception e){}
 
-                    g.insert(0,0,'X');
-
                     // we now block this thread waiting for user 2's input
                     try {
                         GameData gd = (GameData)in2.readObject();
@@ -140,6 +138,7 @@ public class ConnectionThread extends Thread{
                             out2.writeObject(new GameData(g.getGameMatrix(), 'O',-1,Status.PLAYAGAIN));
                             out1.flush();
                             out2.flush();
+                            playerOne = true;
                             g.reset();
                         }else{
                             out1.writeObject(new GameData(g.getGameMatrix(), 'X',-1,Status.END));

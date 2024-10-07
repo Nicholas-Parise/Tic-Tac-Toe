@@ -113,17 +113,5 @@ public class GameLogicHandler {
         return false;
     }
 
-    /** This simple method checks for 3 in a row in a straight direction
-     * @param i row
-     * @param j col
-     * @param pl player char
-     * @return true or false if found
-     */
-    private boolean checkStraight(int i, int j, char pl){
-        if(gameMatrix[i][j] == pl && gameMatrix[i][j] == pl && gameMatrix[i][j] == pl){
-            return true;
-        }
-        return false;
-    }
 
 }

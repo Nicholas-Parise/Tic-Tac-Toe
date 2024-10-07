@@ -26,7 +26,7 @@ public class Comms extends Thread{
     }
 
     String hostName="localhost";
-    int portNumber=1024;
+    int portNumber=1080;
 
     public void run() {
 
@@ -74,9 +74,11 @@ public class Comms extends Thread{
         }
     }
 
+
     public void setCanWrite(boolean canWrite) {
         this.canWrite = canWrite;
     }
+
 
     /**
      * Reads in data from server and changes necessary variables
@@ -105,8 +107,5 @@ public class Comms extends Thread{
                 break;
         }
     }
-
-
-
 
 }
