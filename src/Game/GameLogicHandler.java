@@ -17,7 +17,6 @@ public class GameLogicHandler {
     public GameLogicHandler(){
         gameMatrix = new char[3][3];
         reset();
-        //gameMatrix[0][1] = 'X';
     }
 
     /**
@@ -31,6 +30,15 @@ public class GameLogicHandler {
         }
     }
 
+
+
+    public synchronized void setMatrix(char[][] m) {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                gameMatrix[i][j] = m[i][j];
+            }
+        }
+    }
 
     public synchronized char[][] getGameMatrix(){
         return gameMatrix;

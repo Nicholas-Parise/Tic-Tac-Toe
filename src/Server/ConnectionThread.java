@@ -57,7 +57,9 @@ public class ConnectionThread extends Thread{
                         g.insert((gd.getMoveIndex()) % 3, (gd.getMoveIndex()) / 3, gd.getPlayerId());
                         System.out.println("inserted ");
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.out.println("player 1 closed connection");
+                        client2.close();
+                        break; // empty or null object end of file
                     } catch (ClassNotFoundException e) {
                         e.printStackTrace();
                     }
@@ -79,8 +81,10 @@ public class ConnectionThread extends Thread{
                         GameData gd = (GameData)in2.readObject();
                         g.insert(gd.getMoveIndex() % 3, gd.getMoveIndex() / 3, gd.getPlayerId());
                     } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (ClassNotFoundException e) {
+                        System.out.println("player 2 closed connection");
+                        client1.close();
+                        break; // empty or null object end of file
+                    }  catch (ClassNotFoundException e) {
                         e.printStackTrace();
                     }
                 }

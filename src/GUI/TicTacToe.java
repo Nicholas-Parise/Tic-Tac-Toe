@@ -9,6 +9,7 @@ package GUI;
  */
 
 import Game.GameData;
+import Game.GameLogicHandler;
 import Game.Status;
 
 import java.util.LinkedList;
@@ -17,13 +18,12 @@ import java.util.Queue;
 public class TicTacToe {
 
     GUI gui;
+    GameLogicHandler glh;
 
-    char[][] matrix;
     boolean canSend;
     boolean promptPlayAgain;
     boolean GameLoop;
     char player;
-    char ghostPlayer;
     Status gameState;
     int ghosti, ghostj;
 
@@ -31,27 +31,27 @@ public class TicTacToe {
 
     public TicTacToe(){
 
-        matrix = new char[3][3];
         canSend = false;
         promptPlayAgain = false;
         GameLoop = true;
         gameState = Status.WAITING;
         WriteBuffer = new LinkedList<>();
 
-        removeGhost();
-        createMatrix();
+        glh = new GameLogicHandler();
 
         setPlayer('O');
 
         gui = new GUI(this);
         gui.setVisible(true);
 
-        new Comms(this).start();
+        Comms c = new Comms(this);
+        c.start();
 
         while (GameLoop){
             gui.update();
         }
         gui.close();
+        c.interrupt();
     }
 
     /**
@@ -60,14 +60,14 @@ public class TicTacToe {
      */
     public void setPlayer(char player) {
         this.player = player;
-        ghostPlayer = Character.toLowerCase(player);
     }
 
     /**
      * resets ghost position to be hidden
      */
     public void removeGhost(){
-            matrix[ghosti][ghostj] = '*';
+        ghosti = -1;
+        ghostj = -1;
     }
 
     /**
@@ -78,28 +78,14 @@ public class TicTacToe {
      */
     public boolean insertGhost(int col,int row){
 
-        if (!canInsert(col,row)){
+        if (!glh.canInsert(col,row)){
             return false;
         }
-        if(matrix[row][col] == '*'){
-            matrix[row][col] = ghostPlayer;
             ghosti = row;
             ghostj = col;
-        }
         return true;
     }
 
-    /**
-     *
-     * @param col
-     * @return true if can insert in column
-     */
-    public boolean canInsert(int col,int row){
-        if (matrix[row][col] != 'X' && matrix[row][col] != 'O') {
-            return true;
-        }
-        return false;
-    }
 
     /**
      * code to play again
@@ -111,7 +97,7 @@ public class TicTacToe {
             GameLoop = false;
         }
 
-        WriteBuffer.add(new GameData(getMatrix(), player, 0, tempStatus));
+        WriteBuffer.add(new GameData(glh.getGameMatrix(), player, 0, tempStatus));
 
         promptPlayAgain = false;
         canSend = false;
@@ -124,38 +110,15 @@ public class TicTacToe {
      */
     public void insertAt(int index){
 
-        WriteBuffer.add(new GameData(getMatrix(), player, index, Status.RESPONSE));
+        WriteBuffer.add(new GameData(glh.getGameMatrix(), player, index, Status.RESPONSE));
 
         canSend = false;
         System.out.println(index+" <- sent to server");
     }
 
-    /**
-     * just to prevent null pointers, adds * to all the positions in the matrix
-     */
-    public void createMatrix(){
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                matrix[i][j] = '*';
-            }
-        }
-    }
-
 
     public GameData getSendToServer() {
         return WriteBuffer.poll();
-    }
-
-    public synchronized char[][] getMatrix() {
-        return matrix;
-    }
-
-    public synchronized void setMatrix(char[][] m) {
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                matrix[i][j] = m[i][j];
-            }
-        }
     }
 
     public boolean isDataReady() {

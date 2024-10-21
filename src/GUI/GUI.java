@@ -73,23 +73,24 @@ class Render extends JPanel {
 
         Graphics2D g2d = (Graphics2D) g;
 
-        char[][] matrix = tacToe.getMatrix();
-
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
 
-                if(matrix[i][j] == 'X') {
+                g2d.setColor(Color.gray);
+
+                if(tacToe.glh.getGameMatrix()[i][j] == 'X') {
                     g2d.setColor(Color.red);
-                }else if(matrix[i][j] == 'O'){
+                }else if(tacToe.glh.getGameMatrix()[i][j] == 'O'){
                     g2d.setColor(Color.yellow);
-                }else if(matrix[i][j] == 'o'){
-                    g2d.setColor(Color.ORANGE);
-                }else if(matrix[i][j] == 'x'){
-                    g2d.setColor(Color.PINK);
-                }else{
-                    g2d.setColor(Color.gray);
                 }
 
+                if(tacToe.ghosti == i && tacToe.ghostj == j){
+                    if(tacToe.player == 'X'){
+                        g2d.setColor(Color.PINK);
+                    }else{
+                        g2d.setColor(Color.ORANGE);
+                    }
+                }
                 g.fillOval(20+j*90, 30+i*95, 85, 85);
             }
         }
@@ -172,8 +173,8 @@ public class GUI extends JFrame {
                     }
 
                     public void mouseClicked(java.awt.event.MouseEvent evt) {
-                        System.out.println(tacToe.canInsert(col,row));
-                        if(tacToe.canInsert(col,row)&& tacToe.isCanSend() && !tacToe.getPromptPlayAgain()) {
+
+                        if(tacToe.glh.canInsert(col,row)&& tacToe.isCanSend() && !tacToe.getPromptPlayAgain()) {
                             tacToe.insertAt(index);
                          }
                         System.out.println(col+" "+row);

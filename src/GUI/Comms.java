@@ -40,6 +40,10 @@ public class Comms extends Thread{
         ) {
             while (true) {
 
+                if (Thread.interrupted()) {
+                    break;
+                }
+
                 if(!canWrite) {
 
                     try {
@@ -51,7 +55,10 @@ public class Comms extends Thread{
                         parseInputStream(fromServer);
 
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.out.println("closed connection");
+                        tacToe.GameLoop = false;
+                        conn.close();
+                        break; // empty or null object end of file
                     } catch (ClassNotFoundException e) {
                         e.printStackTrace();
                     }
@@ -88,7 +95,7 @@ public class Comms extends Thread{
 
         tacToe.setGameState(in.getStatus());
         tacToe.setPlayer(in.getPlayerId());
-        tacToe.setMatrix(in.getMatrix());
+        tacToe.glh.setMatrix(in.getMatrix());
 
         switch (in.getStatus()){
             case WIN:
