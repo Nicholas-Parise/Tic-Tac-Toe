@@ -92,5 +92,42 @@ public class ConnectionThread extends Thread{
     }
 
 
+    /**
+     * Turn object into array of bytes
+     * These bytes are then send or reviewed
+     * @param data
+     * @return
+     */
+    private byte[] serialize(GameData data){
+        try{
+            ByteArrayOutputStream byteStr = new ByteArrayOutputStream();
+            ObjectOutputStream objStr = new ObjectOutputStream(byteStr);
+            objStr.writeObject(data);
+            objStr.flush();
+            return byteStr.toByteArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * turn stream of bytes into an object
+     * @param data
+     * @return
+     */
+    private GameData deSerialize(byte[] data){
+        try {
+            ByteArrayInputStream byteStr = new ByteArrayInputStream(data);
+            ObjectInputStream objStr = new ObjectInputStream(byteStr);
+            GameData gd = (GameData) objStr.readObject();
+            return gd;
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
 
 }

@@ -44,8 +44,12 @@ public class TicTacToe {
         gui = new GUI(this);
         gui.setVisible(true);
 
-        Comms c = new Comms(this);
+        //Comms c = new Comms(this);
+        UDPComms c = new UDPComms(this);
         c.start();
+
+        WriteBuffer.add(null);
+        c.setCanWrite(true);
 
         while (GameLoop){
             gui.update();
