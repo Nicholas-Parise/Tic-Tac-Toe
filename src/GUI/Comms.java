@@ -20,13 +20,20 @@ public class Comms extends Thread{
 
     boolean canWrite;
     TicTacToe tacToe;
+    boolean GameLoop;
 
     public Comms(TicTacToe con){
         tacToe = con;
+        GameLoop = true;
     }
 
     String hostName="localhost";
     int portNumber=1080;
+
+
+    public void kill(){
+        GameLoop = false;
+    }
 
     public void run() {
 
@@ -38,7 +45,7 @@ public class Comms extends Thread{
                 ObjectOutputStream sockOut = new ObjectOutputStream (conn.getOutputStream());
                 ObjectInputStream sockIn = new ObjectInputStream(conn.getInputStream());
         ) {
-            while (true) {
+            while (GameLoop) {
 
                 if (Thread.interrupted()) {
                     break;

@@ -51,6 +51,7 @@ public class TicTacToe {
             gui.update();
         }
         gui.close();
+        c.kill();
         c.interrupt();
     }
 

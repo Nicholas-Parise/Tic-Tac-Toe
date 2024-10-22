@@ -14,14 +14,14 @@ import Game.*;
 
 public class ConnectionThread extends Thread{
     private Socket client1,client2;
-    private GameLogicHandler g;
-    private boolean playerOne;
+    private Game g;
 
     public ConnectionThread(Socket c1, Socket c2) {
         client1 = c1;
         client2 = c2;
-        g = new GameLogicHandler();
-        playerOne = true;
+
+        g = new Game();
+        g.start();
     }
 
     public void run() {
@@ -32,129 +32,57 @@ public class ConnectionThread extends Thread{
                 ObjectInputStream in1 = new ObjectInputStream(client1.getInputStream());
                 ObjectInputStream in2 = new ObjectInputStream(client2.getInputStream());
         ) {
-            boolean promptEnd = false;
+
+
+            new Thread(()->{
+                while (true) {
+                    try {
+                        GameData gd = (GameData) in1.readObject();
+                        System.out.println("read in 1");
+                        g.insertP1Read(gd);
+
+                    } catch (IOException e) {
+                        System.out.println("player 1 closed connection");
+                        synchronized (g) {
+                            g.kill();
+                        }
+                        break; // empty or null object end of file
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+
+            new Thread(()->{
+                while (true) {
+                    try {
+                        GameData gd = (GameData) in2.readObject();
+                        System.out.println("read in 2");
+                        g.insertP2Read(gd);
+                    } catch (IOException e) {
+                        System.out.println("player 2 closed connection");
+                        synchronized (g) {
+                            g.kill();
+                        }
+                        break; // empty or null object end of file
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+
 
             while (true) {
 
-                // simple game control logic
-
-                if(playerOne) {
-                    // ----- player 1 turn ------
-                    playerOne = false;
-                    // send both users the game matrix and make it player 1's turn
-                    out1.writeObject(new GameData(g.getGameMatrix(), 'X', -1, Status.TURN));
-                    out1.flush();
-                    out2.writeObject(new GameData(g.getGameMatrix(), 'O', -1, Status.WAITING));
-                    out2.flush();
-
-                    try{
-                        Thread.sleep(10);
-                    }catch (Exception e){}
-
-                    // we now block this thread waiting for user 1's input
-                    try {
-                        GameData gd = (GameData)in1.readObject();
-                        g.insert((gd.getMoveIndex()) % 3, (gd.getMoveIndex()) / 3, gd.getPlayerId());
-                        System.out.println("inserted ");
-                    } catch (IOException e) {
-                        System.out.println("player 1 closed connection");
-                        client2.close();
-                        break; // empty or null object end of file
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
+                synchronized (g) {
+                    if (g.isWriteReadyP1()) {
+                        out1.writeObject(g.getP1Write());
+                        out1.flush();
                     }
-                }else{
-                    // ----- player 2 turn ------
-                    playerOne = true;
-                    // send both users the game matrix and make it player 1's turn
-                    out1.writeObject(new GameData(g.getGameMatrix(), 'X', -1, Status.WAITING));
-                    out1.flush();
-                    out2.writeObject(new GameData(g.getGameMatrix(), 'O', -1, Status.TURN));
-                    out2.flush();
 
-                    try{
-                        Thread.sleep(10);
-                    }catch (Exception e){}
-
-                    // we now block this thread waiting for user 2's input
-                    try {
-                        GameData gd = (GameData)in2.readObject();
-                        g.insert(gd.getMoveIndex() % 3, gd.getMoveIndex() / 3, gd.getPlayerId());
-                    } catch (IOException e) {
-                        System.out.println("player 2 closed connection");
-                        client1.close();
-                        break; // empty or null object end of file
-                    }  catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                // check if play X wins
-                if(g.win('X')){
-                    out1.writeObject(new GameData(g.getGameMatrix(), 'X',-1,Status.WIN));
-                    out2.writeObject(new GameData(g.getGameMatrix(), 'O',-1,Status.LOSE));
-                    out1.flush();
-                    out2.flush();
-                    promptEnd = true;
-                }
-
-                // check if play O wins
-                if(g.win('O')){
-                    out1.writeObject(new GameData(g.getGameMatrix(), 'X',-1,Status.LOSE));
-                    out2.writeObject(new GameData(g.getGameMatrix(), 'O',-1,Status.WIN));
-                    out1.flush();
-                    out2.flush();
-                    promptEnd = true;
-                }
-
-                // check if there is a tie
-                if(g.tieTester()){
-                    out1.writeObject(new GameData(g.getGameMatrix(), 'X',-1,Status.TIE));
-                    out2.writeObject(new GameData(g.getGameMatrix(), 'O',-1,Status.TIE));
-                    out1.flush();
-                    out2.flush();
-                    promptEnd = true;
-                }
-
-                if(promptEnd){
-                    promptEnd = false;
-
-                    try{
-                        Thread.sleep(1000);
-                    }catch (Exception e){}
-
-                    out1.writeObject(new GameData(g.getGameMatrix(), 'X',-1,Status.PROMPT));
-                    out2.writeObject(new GameData(g.getGameMatrix(), 'O',-1,Status.PROMPT));
-                    out1.flush();
-                    out2.flush();
-
-                    try{
-                        Thread.sleep(10);
-                    }catch (Exception e){}
-
-                    // we now block this thread waiting for both users responses
-                    try {
-                        GameData gd = (GameData)in1.readObject();
-                        GameData gd2 = (GameData)in2.readObject();
-
-                        if(gd.getStatus() == Status.PLAYAGAIN && gd2.getStatus() == Status.PLAYAGAIN){
-                            out1.writeObject(new GameData(g.getGameMatrix(), 'X',-1,Status.PLAYAGAIN));
-                            out2.writeObject(new GameData(g.getGameMatrix(), 'O',-1,Status.PLAYAGAIN));
-                            out1.flush();
-                            out2.flush();
-                            playerOne = true;
-                            g.reset();
-                        }else{
-                            out1.writeObject(new GameData(g.getGameMatrix(), 'X',-1,Status.END));
-                            out2.writeObject(new GameData(g.getGameMatrix(), 'O',-1,Status.END));
-                            out1.flush();
-                            out2.flush();
-                            break;
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
+                    if (g.isWriteReadyP2()) {
+                        out2.writeObject(g.getP2Write());
+                        out2.flush();
                     }
                 }
 
@@ -163,4 +91,8 @@ public class ConnectionThread extends Thread{
             System.out.println("Connection TERMINATED");
         }
     }
+
+
+
+
 }
