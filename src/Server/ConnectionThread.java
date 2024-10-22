@@ -28,52 +28,52 @@ public class ConnectionThread extends Thread{
         try (
                 ObjectOutputStream out1 = new ObjectOutputStream (client1.getOutputStream());
                 ObjectOutputStream out2 = new ObjectOutputStream (client2.getOutputStream());
-
                 ObjectInputStream in1 = new ObjectInputStream(client1.getInputStream());
                 ObjectInputStream in2 = new ObjectInputStream(client2.getInputStream());
         ) {
 
+            handleInput(in1,1);
+            handleInput(in2,2);
 
-            new Thread(()->{
-                while (true) {
-                    try {
-                        GameData gd = (GameData) in1.readObject();
-                        System.out.println("read in 1");
-                        g.insertP1Read(gd);
+            handleOutput(out1, out2);
 
-                    } catch (IOException e) {
-                        System.out.println("player 1 closed connection");
-                        synchronized (g) {
-                            g.kill();
-                        }
-                        break; // empty or null object end of file
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-
-            new Thread(()->{
-                while (true) {
-                    try {
-                        GameData gd = (GameData) in2.readObject();
-                        System.out.println("read in 2");
-                        g.insertP2Read(gd);
-                    } catch (IOException e) {
-                        System.out.println("player 2 closed connection");
-                        synchronized (g) {
-                            g.kill();
-                        }
-                        break; // empty or null object end of file
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
+        } catch (IOException e) {
+            System.out.println("Connection TERMINATED");
+        }
+        System.out.println("ended");
+    }
 
 
+    private void handleInput(ObjectInputStream in, int player){
+
+        new Thread(()->{
             while (true) {
+                try {
+                    GameData gd = (GameData) in.readObject();
+                    System.out.println("read in "+player);
+                    if(player == 1){
+                        g.insertP1Read(gd);
+                    }else{
+                        g.insertP2Read(gd);
+                    }
+                } catch (IOException e) {
+                    System.out.println("player"+player+" closed connection");
+                    synchronized (g) {
+                        g.kill();
+                    }
+                    break; // empty or null object end of file
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
 
+
+
+    private void handleOutput(ObjectOutputStream out1, ObjectOutputStream out2){
+        try {
+            while (true) {
                 synchronized (g) {
                     if (g.isWriteReadyP1()) {
                         out1.writeObject(g.getP1Write());
@@ -85,13 +85,11 @@ public class ConnectionThread extends Thread{
                         out2.flush();
                     }
                 }
-
             }
         } catch (IOException e) {
             System.out.println("Connection TERMINATED");
         }
     }
-
 
 
 

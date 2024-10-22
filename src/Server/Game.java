@@ -33,6 +33,8 @@ public class Game extends Thread{
 
     public void kill(){
         GameLoop = false;
+        writeBufferP1.add(new GameData(glh.getGameMatrix(), 'X', -1, Status.END));
+        writeBufferP2.add(new GameData(glh.getGameMatrix(), 'O', -1, Status.END));
     }
 
     public void run() {
@@ -122,7 +124,7 @@ public class Game extends Thread{
                 GameData gd = readBufferP1.poll();
                 GameData gd2 = readBufferP2.poll();
 
-                if(gd.getStatus() == Status.PLAYAGAIN && gd2.getStatus() == Status.PLAYAGAIN){
+                if(gd.getStatus() != Status.END && gd2.getStatus() != Status.END){
                     writeBufferP1.add(new GameData(glh.getGameMatrix(), 'X', -1, Status.PLAYAGAIN));
                     writeBufferP2.add(new GameData(glh.getGameMatrix(), 'O', -1, Status.PLAYAGAIN));
                     playerOne = true;

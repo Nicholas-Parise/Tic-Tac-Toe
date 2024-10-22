@@ -55,6 +55,11 @@ public class TicTacToe {
         c.interrupt();
     }
 
+    public void kill(){
+        GameLoop = false;
+    }
+
+
     /**
      * sets the player and the ghost player to be the correct char
      * @param player

@@ -86,6 +86,7 @@ public class Comms extends Thread{
         } catch (IOException e) {
             System.out.println("IO error for the connection.");
         }
+        tacToe.kill();
     }
 
 
