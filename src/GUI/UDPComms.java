@@ -20,10 +20,10 @@ public class UDPComms extends Thread{
 
     boolean canWrite;
     TicTacToe tacToe;
-    boolean GameLoop;
 
+    volatile boolean GameLoop;
+    volatile int portNumber = 1080;
     String hostName="localhost";
-    int portNumber = 1080;
 
     DatagramSocket socket;
     InetAddress serverAddr;
@@ -41,7 +41,7 @@ public class UDPComms extends Thread{
         }
     }
 
-    public void kill(){
+    public synchronized void kill(){
         GameLoop = false;
     }
 
@@ -59,13 +59,17 @@ public class UDPComms extends Thread{
         new Thread(()->{
             try {
                 while (true) {
-                    if (canWrite && tacToe.isDataReady()) {
-                        System.out.println("is going to send data");
-                        canWrite = false;
-                        byte[] data = GameData.serialize(tacToe.getSendToServer());
-                        DatagramPacket packet = new DatagramPacket(data, data.length, serverAddr, portNumber);
-                        socket.send(packet);
-                        System.out.println("finished sending data");
+
+                    //System.out.println(canWrite +" "+ tacToe.isDataReady());
+                    synchronized (tacToe) {
+                        if (canWrite && tacToe.isDataReady()) {
+                            System.out.println("is going to send data");
+                            setCanWrite(false);
+                            byte[] data = GameData.serialize(tacToe.getSendToServer());
+                            DatagramPacket packet = new DatagramPacket(data, data.length, serverAddr, portNumber);
+                            socket.send(packet);
+                            System.out.println("finished sending data");
+                        }
                     }
                 }
             } catch (IOException e) {
@@ -99,7 +103,7 @@ public class UDPComms extends Thread{
 
 
 
-    public void setCanWrite(boolean canWrite) {
+    public synchronized void setCanWrite(boolean canWrite) {
         this.canWrite = canWrite;
     }
 

@@ -127,11 +127,11 @@ public class TicTacToe {
     }
 
 
-    public GameData getSendToServer() {
+    public synchronized GameData getSendToServer() {
         return WriteBuffer.poll();
     }
 
-    public boolean isDataReady() {
+    public synchronized boolean isDataReady() {
         return WriteBuffer.size() > 0;
     }
 

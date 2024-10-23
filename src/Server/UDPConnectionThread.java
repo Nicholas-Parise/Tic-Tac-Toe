@@ -57,21 +57,22 @@ public class UDPConnectionThread extends Thread{
         byte[] buffer = new byte[1024];
 
         while (true) {
-            System.out.println("test");
             try {
                 DatagramPacket packet = new DatagramPacket(buffer,buffer.length);
                 serverSocket.receive(packet);
 
-                System.out.println("received packet");
+                System.out.print("received a packet from ");
 
                 if(packet.getAddress().equals(client1Addr) && packet.getPort() == client1Port){
+                    System.out.print("client 1 ");
                     GameData gd = GameData.deSerialize(packet.getData());
                     g.insertP1Read(gd);
-                    System.out.println("read in 1");
+                    System.out.println("and the read was successful");
                 }else{
+                    System.out.print("client 2 ");
                     GameData gd = GameData.deSerialize(packet.getData());
                     g.insertP2Read(gd);
-                    System.out.println("read in 2");
+                    System.out.println("and the read was successful");
                 }
 
             } catch (IOException e) {
