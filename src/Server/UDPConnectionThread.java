@@ -9,19 +9,20 @@ import java.net.*;
  * @author Nicholas Parise
  * @version 1.0
  * @course COSC 4P14
- * @assignment #1
+ * @assignment #2
  * @student Id 7242530
- * @since Oct 6th , 2024
+ * @since Oct 22nd , 2024
  */
 
 public class UDPConnectionThread extends Thread{
 
     private DatagramSocket serverSocket;
     private DatagramPacket client1,client2;
-    private int client1Port, client2Port;
-    private InetAddress client1Addr, client2Addr;
+    private final int client1Port, client2Port;
+    private final InetAddress client1Addr, client2Addr;
+    private final int gamePort;
+
     private Game g;
-    private int gamePort;
 
     public UDPConnectionThread(int gamePort,DatagramPacket c1, DatagramPacket c2) throws SocketException {
 
@@ -48,6 +49,7 @@ public class UDPConnectionThread extends Thread{
 
         handleInput();
 
+        serverSocket.close();
         System.out.println("ended");
     }
 
