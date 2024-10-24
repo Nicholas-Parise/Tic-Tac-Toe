@@ -4,12 +4,14 @@ package GUI;
  * @author Nicholas Parise
  * @version 1.0
  * @course COSC 4P14
- * @assignment #1
+ * @assignment #2
  * @student Id 7242530
- * @since Oct 6th , 2024
+ * @since Oct 23th , 2024
  */
 
 import Game.GameData;
+import Transport.MessageType;
+import Transport.Segment;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -47,25 +49,71 @@ public class UDPComms extends Thread{
 
     public void run() {
 
+        handshake();
+
         handleOutput();
 
         handleInput();
 
         tacToe.kill();
+        closeConnection();
     }
+
+
+    private void closeConnection(){
+
+        try {
+            byte[] data = Segment.serialize(new Segment(MessageType.FIN, 0, 0, null));
+            DatagramPacket finPacket = new DatagramPacket(data, data.length, serverAddr, portNumber);
+            socket.send(finPacket);
+            System.out.println("FIN sent to the server");
+        }catch (IOException e) {}
+    }
+
+    private void handshake(){
+
+            try {
+                Segment syn = new Segment(MessageType.SYN, 0, 0, null);
+                byte[] data = Segment.serialize(syn);
+                DatagramPacket synPacket = new DatagramPacket(data, data.length, serverAddr, portNumber);
+                socket.send(synPacket);
+                System.out.println("SYN sent to the server");
+
+
+                byte[] buffer = new byte[1024];
+                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+                socket.receive(packet);
+                Segment s = Segment.deSerialize(packet.getData());
+
+                if(s.getMessageType() == MessageType.SYN_ACK){
+                    System.out.println("get SYNACK");
+                    Segment Ack = new Segment(MessageType.ACK, s.getSequenceNumber(), s.getSequenceNumber(), null);
+                    data = Segment.serialize(Ack);
+                    DatagramPacket ackPacket = new DatagramPacket(data, data.length, serverAddr, portNumber);
+                    socket.send(ackPacket);
+                    System.out.println("ACK sent to the server");
+                }
+
+                System.out.println("read in from server "+portNumber);
+            } catch (IOException e) {
+                System.out.println("failed to establish connection with server");
+                tacToe.kill();
+            }
+    }
+
 
 
     private void handleOutput(){
         new Thread(()->{
             try {
-                while (true) {
+                while (GameLoop) {
 
                     //System.out.println(canWrite +" "+ tacToe.isDataReady());
                     synchronized (tacToe) {
                         if (canWrite && tacToe.isDataReady()) {
                             System.out.println("is going to send data");
                             setCanWrite(false);
-                            byte[] data = GameData.serialize(tacToe.getSendToServer());
+                            byte[] data = Segment.serialize(new Segment(MessageType.DATA,1,1,tacToe.getSendToServer()));
                             DatagramPacket packet = new DatagramPacket(data, data.length, serverAddr, portNumber);
                             socket.send(packet);
                             System.out.println("finished sending data");
@@ -75,6 +123,7 @@ public class UDPComms extends Thread{
             } catch (IOException e) {
                 System.out.println("Connection TERMINATED");
                 tacToe.kill();
+                kill();
             }
         }).start();
     }
@@ -88,10 +137,17 @@ public class UDPComms extends Thread{
             try {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
-                GameData gd = GameData.deSerialize(packet.getData());
-                parseInputStream(gd);
-                portNumber = packet.getPort();  // this is important since the server will change its port number after getting established.
+                Segment s = Segment.deSerialize(packet.getData());
                 System.out.println("read in from server "+portNumber);
+
+                if(s.getMessageType() == MessageType.DATA) {
+                    parseInputStream(s.getGameData());
+                    portNumber = packet.getPort();  // this is important since the server will change its port number after getting established.
+                }else if (s.getMessageType() == MessageType.FIN){
+                    System.out.println("server closed the connection");
+                    tacToe.kill();
+                }
+
             } catch (IOException e) {
                 System.out.println("server closed the connection");
                 tacToe.kill();
@@ -99,8 +155,6 @@ public class UDPComms extends Thread{
             }
         }
     }
-
-
 
 
     public synchronized void setCanWrite(boolean canWrite) {

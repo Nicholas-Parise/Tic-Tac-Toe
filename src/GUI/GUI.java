@@ -106,9 +106,9 @@ public class GUI extends JFrame {
 
     TicTacToe tacToe;
 
-    public GUI(TicTacToe connectFour) {
+    public GUI(TicTacToe tictac) {
 
-        tacToe = connectFour;
+        tacToe = tictac;
 
         addButtons();
 
@@ -124,6 +124,7 @@ public class GUI extends JFrame {
 
     public void close(){
         dispose();
+        tacToe.kill();
     }
 
     public void update() {

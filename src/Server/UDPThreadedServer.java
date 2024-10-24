@@ -1,5 +1,8 @@
 package Server;
 
+import Transport.MessageType;
+import Transport.Segment;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -17,24 +20,25 @@ import java.net.Socket;
 public class UDPThreadedServer {
 
     private int gamePort;
+    DatagramSocket serverSocket;
+    DatagramPacket client1;
+    DatagramPacket client2;
 
     public UDPThreadedServer(int portNumber){
 
         gamePort = portNumber+1;
+        try {
+            serverSocket = new DatagramSocket (portNumber);
 
-        try (
-                DatagramSocket serverSocket = new DatagramSocket (portNumber);
-        ) {
             while (true) {
 
-                byte[] buffer1 = new byte[1024];
-                byte[] buffer2 = new byte[1024];
+                do{
+                    client1 = handshake();
+                }while(client1 == null);
 
-                DatagramPacket client1 = new DatagramPacket(buffer1,buffer1.length);
-                serverSocket.receive(client1);
-
-                DatagramPacket client2 = new DatagramPacket(buffer2,buffer2.length);
-                serverSocket.receive(client2);
+                do{
+                    client2 = handshake();
+                }while (client2 == null);
 
                 new UDPConnectionThread(gamePort,client1,client2).start();
                 gamePort++;
@@ -45,6 +49,34 @@ public class UDPThreadedServer {
         }
 
     }
+
+    private DatagramPacket handshake(){
+
+        byte[] buffer = new byte[1024];
+        DatagramPacket client = new DatagramPacket(buffer,buffer.length);
+
+        try {
+            serverSocket.receive(client);
+            Segment s = Segment.deSerialize(client.getData());
+
+            if(s.getMessageType() == MessageType.SYN){
+                System.out.println("Received SYN request sending SYN ACK");
+                byte[] data = Segment.serialize(new Segment(MessageType.SYN_ACK,0,s.getSequenceNumber() + 1,null));
+                DatagramPacket packet = new DatagramPacket(data, data.length, client.getAddress(), client.getPort());
+                serverSocket.send(packet);
+                return client;
+            }
+
+        } catch (IOException e) {
+            System.out.println("handshake with client failed");
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
+
+
+
 
     public static void main(String[] args) {
         new UDPThreadedServer(1080);

@@ -22,12 +22,14 @@ public class TicTacToe {
 
     boolean canSend;
     boolean promptPlayAgain;
-    boolean GameLoop;
+    volatile boolean GameLoop;
     char player;
     Status gameState;
     int ghosti, ghostj;
 
     Queue<GameData> WriteBuffer;
+
+    UDPComms com;
 
     public TicTacToe(){
 
@@ -44,23 +46,20 @@ public class TicTacToe {
         gui = new GUI(this);
         gui.setVisible(true);
 
-        //Comms c = new Comms(this);
-        UDPComms c = new UDPComms(this);
-        c.start();
-
-        WriteBuffer.add(null);
-        c.setCanWrite(true);
+        //Comms com = new Comms(this);
+        UDPComms com = new UDPComms(this);
+        com.start();
 
         while (GameLoop){
             gui.update();
         }
         gui.close();
-        c.kill();
-        c.interrupt();
+        com.kill();
     }
 
     public void kill(){
         GameLoop = false;
+        com.kill();
     }
 
 
@@ -104,7 +103,7 @@ public class TicTacToe {
         Status tempStatus = gui.SpawnPlayAgainBox();
 
         if(tempStatus == Status.END){
-            GameLoop = false;
+            kill();
         }
 
         WriteBuffer.add(new GameData(glh.getGameMatrix(), player, 0, tempStatus));

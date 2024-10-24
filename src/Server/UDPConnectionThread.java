@@ -1,6 +1,8 @@
 package Server;
 
 import Game.GameData;
+import Transport.MessageType;
+import Transport.Segment;
 
 import java.io.*;
 import java.net.*;
@@ -67,13 +69,14 @@ public class UDPConnectionThread extends Thread{
 
                 if(packet.getAddress().equals(client1Addr) && packet.getPort() == client1Port){
                     System.out.print("client 1 ");
-                    GameData gd = GameData.deSerialize(packet.getData());
-                    g.insertP1Read(gd);
+
+                    Segment s = Segment.deSerialize(packet.getData());
+                    g.insertP1Read(s.getGameData());
                     System.out.println("and the read was successful");
                 }else{
                     System.out.print("client 2 ");
-                    GameData gd = GameData.deSerialize(packet.getData());
-                    g.insertP2Read(gd);
+                    Segment s = Segment.deSerialize(packet.getData());
+                    g.insertP2Read(s.getGameData());
                     System.out.println("and the read was successful");
                 }
 
@@ -94,7 +97,7 @@ public class UDPConnectionThread extends Thread{
                 while (true) {
                     synchronized (g) {
                         if (g.isWriteReadyP1()) {
-                            byte[] data = GameData.serialize(g.getP1Write());
+                            byte[] data = Segment.serialize(new Segment(MessageType.DATA,1,1,g.getP1Write()));
                             DatagramPacket packet = new DatagramPacket(data, data.length, client1Addr, client1Port);
                             serverSocket.send(packet);
                             System.out.println("sent player 1 data");
@@ -102,7 +105,7 @@ public class UDPConnectionThread extends Thread{
 
                         if (g.isWriteReadyP2()) {
 
-                            byte[] data = GameData.serialize(g.getP2Write());
+                            byte[] data = Segment.serialize(new Segment(MessageType.DATA,1,1,g.getP2Write()));
                             DatagramPacket packet = new DatagramPacket(data, data.length, client2Addr, client2Port);
                             serverSocket.send(packet);
                             System.out.println("sent player 2 data");
