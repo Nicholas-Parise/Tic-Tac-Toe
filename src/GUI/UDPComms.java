@@ -108,7 +108,10 @@ public class UDPComms extends Thread{
             try {
                 while (GameLoop) {
 
-                    //System.out.println(canWrite +" "+ tacToe.isDataReady());
+                    try{
+                        Thread.sleep(50);
+                    }catch (Exception e){}
+
                     synchronized (tacToe) {
                         if (canWrite && tacToe.isDataReady()) {
                             System.out.println("is going to send data");
@@ -134,6 +137,11 @@ public class UDPComms extends Thread{
         byte[] buffer = new byte[1024];
 
         while (GameLoop) {
+
+            try{
+                Thread.sleep(50);
+            }catch (Exception e){}
+
             try {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);

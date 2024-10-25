@@ -73,6 +73,16 @@ class Render extends JPanel {
 
         Graphics2D g2d = (Graphics2D) g;
 
+        float f=80.0f; // font size.
+        g2d.setFont(g.getFont().deriveFont(f));
+
+        FontMetrics fm = g2d.getFontMetrics();
+
+        int textOffsetX = fm.stringWidth("X")/2 -42;
+        int textOffsetX_O = fm.stringWidth("O")/2 -42;
+        int textOffsetY = fm.getHeight()/2 + 23;
+
+
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
 
@@ -80,18 +90,30 @@ class Render extends JPanel {
 
                 if(tacToe.glh.getGameMatrix()[i][j] == 'X') {
                     g2d.setColor(Color.red);
+                    g.fillOval(20+j*90, 30+i*95, 85, 85);
+                    g2d.setColor(Color.gray);
+                    g2d.drawString("X", (int) (20+j*90 - textOffsetX),(int) (30+i*95 + textOffsetY));
                 }else if(tacToe.glh.getGameMatrix()[i][j] == 'O'){
                     g2d.setColor(Color.yellow);
-                }
-
-                if(tacToe.ghosti == i && tacToe.ghostj == j){
+                    g.fillOval(20+j*90, 30+i*95, 85, 85);
+                    g2d.setColor(Color.gray);
+                    g2d.drawString("O", (int) (20+j*90 - textOffsetX_O),(int) (30+i*95 + textOffsetY));
+                }else if(tacToe.ghosti == i && tacToe.ghostj == j){
                     if(tacToe.player == 'X'){
                         g2d.setColor(Color.PINK);
+                        g.fillOval(20+j*90, 30+i*95, 85, 85);
+                        g2d.setColor(Color.gray);
+                        g2d.drawString("X", (int) (20+j*90 - textOffsetX),(int) (30+i*95 + textOffsetY));
                     }else{
                         g2d.setColor(Color.ORANGE);
+                        g.fillOval(20+j*90, 30+i*95, 85, 85);
+                        g2d.setColor(Color.gray);
+                        g2d.drawString("O", (int) (20+j*90 - textOffsetX_O),(int) (30+i*95 + textOffsetY));
                     }
+                }else{
+                    g.fillOval(20+j*90, 30+i*95, 85, 85);
                 }
-                g.fillOval(20+j*90, 30+i*95, 85, 85);
+
             }
         }
     }
