@@ -56,6 +56,10 @@ public class UDPConnectionThread extends Thread{
     }
 
 
+    /**
+     * handle all input from the clients.
+     * We detect which player its from and send it to the correct buffer
+     */
     private void handleInput(){
 
         byte[] buffer = new byte[1024];

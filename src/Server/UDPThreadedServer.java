@@ -12,9 +12,9 @@ import java.net.Socket;
  * @author Nicholas Parise
  * @version 1.0
  * @course COSC 4P14
- * @assignment #1
+ * @assignment #2
  * @student Id 7242530
- * @since Oct 6th , 2024
+ * @since Oct 24th , 2024
  */
 
 public class UDPThreadedServer {
@@ -24,6 +24,12 @@ public class UDPThreadedServer {
     DatagramPacket client1;
     DatagramPacket client2;
 
+    /**
+     * runs in a loop forever to try and connect clients
+     * if a client fails to connect we retry.
+     * we retry until we get 2 clients and then we spin up a new thread with a new port
+     * @param portNumber
+     */
     public UDPThreadedServer(int portNumber){
 
         gamePort = portNumber+1;
@@ -50,6 +56,12 @@ public class UDPThreadedServer {
 
     }
 
+    /**
+     * Perform the TCP 3 way handshake. SYN -> SYNACK -> ACK
+     * We poll and wait for a client to successfully connect,
+     * when that client is connected we return the packet received
+     * @return
+     */
     private DatagramPacket handshake(){
 
         byte[] buffer = new byte[1024];
