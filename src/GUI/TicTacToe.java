@@ -3,9 +3,9 @@ package GUI;
  * @author Nicholas Parise
  * @version 1.0
  * @course COSC 4P14
- * @assignment #1
+ * @assignment #2
  * @student Id 7242530
- * @since Oct 6th , 2024
+ * @since Oct 25th , 2024
  */
 
 import Game.GameData;
@@ -30,6 +30,7 @@ public class TicTacToe {
     Queue<GameData> WriteBuffer;
 
     UDPComms com;
+    //Comms com;
 
     public TicTacToe(){
 
@@ -46,7 +47,7 @@ public class TicTacToe {
         gui = new GUI(this);
         gui.setVisible(true);
 
-        //Comms com = new Comms(this);
+        //com = new Comms(this);
         com = new UDPComms(this);
         com.start();
 
@@ -58,6 +59,7 @@ public class TicTacToe {
     }
 
     public void kill(){
+        System.out.println("kill message sent. killing GUI thread");
         GameLoop = false;
         com.kill();
     }

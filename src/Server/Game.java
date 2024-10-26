@@ -6,6 +6,15 @@ import java.util.Queue;
 
 import Game.*;
 
+/**
+ * @author Nicholas Parise
+ * @version 1.0
+ * @course COSC 4P14
+ * @assignment #2
+ * @student Id 7242530
+ * @since Oct 25th , 2024
+ */
+
 public class Game extends Thread{
 
     private GameLogicHandler glh;

@@ -6,9 +6,9 @@ import java.io.*;
  * @author Nicholas Parise
  * @version 1.0
  * @course COSC 4P14
- * @assignment #1
+ * @assignment #2
  * @student Id 7242530
- * @since Oct 6th , 2024
+ * @since Oct 25th , 2024
  */
 
 public class ThreadedServer {

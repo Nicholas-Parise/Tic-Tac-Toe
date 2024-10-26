@@ -6,7 +6,7 @@ package GUI;
  * @course COSC 4P14
  * @assignment #2
  * @student Id 7242530
- * @since Oct 23th , 2024
+ * @since Oct 25th , 2024
  */
 
 import Game.GameData;
@@ -24,7 +24,7 @@ public class UDPComms extends Thread{
     boolean canWrite;
     TicTacToe tacToe;
 
-    volatile boolean GameLoop;
+    volatile boolean gameLoop;
 
     String hostName="localhost";
     DatagramSocket socket;
@@ -38,7 +38,7 @@ public class UDPComms extends Thread{
 
     public UDPComms(TicTacToe t) {
         tacToe = t;
-        GameLoop = true;
+        gameLoop = true;
         canWrite = false;
         retransmit = new LinkedList<>();
         sequence = 0;
@@ -48,12 +48,8 @@ public class UDPComms extends Thread{
             serverAddr = InetAddress.getByName(hostName);
         }catch (SocketException | UnknownHostException e){
             System.out.println("could not establish connection");
-            GameLoop = false;
+            gameLoop = false;
         }
-    }
-
-    public synchronized void kill(){
-        GameLoop = false;
     }
 
     public void run() {
@@ -67,8 +63,21 @@ public class UDPComms extends Thread{
         handleInput();
 
         tacToe.kill();
-        closeConnection();
+        kill();
     }
+
+
+    public synchronized void kill(){
+        gameLoop = false;
+        closeConnection();
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        socket.close();
+    }
+
 
     /**
      * close the connection with the server
@@ -89,6 +98,7 @@ public class UDPComms extends Thread{
     private void handshake(){
 
             try {
+
                 Segment syn = new Segment(MessageType.SYN, 0, 0, null);
                 byte[] data = Segment.serialize(syn);
                 DatagramPacket synPacket = new DatagramPacket(data, data.length, serverAddr, serverPort);
@@ -125,7 +135,7 @@ public class UDPComms extends Thread{
     private void handleOutput(){
         new Thread(()->{
             try {
-                while (GameLoop) {
+                while (gameLoop) {
 
                     synchronized (tacToe) {
                         if (canWrite && tacToe.isDataReady()) {
@@ -156,7 +166,7 @@ public class UDPComms extends Thread{
 
         byte[] buffer = new byte[1024];
 
-        while (GameLoop) {
+        while (gameLoop) {
 
             try{
                 Thread.sleep(50);
@@ -170,7 +180,7 @@ public class UDPComms extends Thread{
 
                 if(s.getSequenceNumber() != expectedSequence) {
                     // disregard out of order packet.
-                    System.out.println("out of order packet");
+                    System.out.println("out of order packet, disregarding");
                 }else{
 
                     if(s.getMessageType() == MessageType.DATA) {
@@ -207,7 +217,7 @@ public class UDPComms extends Thread{
     private void handleRetransmit(){
         new Thread(()->{
 
-            while (true) {
+            while (gameLoop) {
                 try {
                     synchronized (retransmit) {
                         if (!retransmit.isEmpty()) {

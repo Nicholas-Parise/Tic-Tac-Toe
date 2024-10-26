@@ -3,7 +3,12 @@ package Transport;
 import java.net.DatagramPacket;
 
 /**
- * A simple class that will be held in the queue.
+ * @author Nicholas Parise
+ * @version 1.0
+ * @course COSC 4P14
+ * @assignment #2
+ * @student Id 7242530
+ * @since Oct 25th , 2024
  */
 public class SentPacket {
 

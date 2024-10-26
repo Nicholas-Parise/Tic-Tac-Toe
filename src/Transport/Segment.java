@@ -4,6 +4,15 @@ import Game.GameData;
 
 import java.io.*;
 
+/**
+ * @author Nicholas Parise
+ * @version 1.0
+ * @course COSC 4P14
+ * @assignment #2
+ * @student Id 7242530
+ * @since Oct 25th , 2024
+ */
+
 public class Segment implements Serializable {
 
     private static final long serialVersionUID = 1L;

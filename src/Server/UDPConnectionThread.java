@@ -1,17 +1,13 @@
 package Server;
 
-import GUI.UDPComms;
-import Game.GameData;
 import Transport.MessageType;
 import Transport.Segment;
 import Transport.SentPacket;
 
 import java.io.*;
 import java.net.*;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Random;
 
 /**
  * @author Nicholas Parise
@@ -19,7 +15,7 @@ import java.util.Random;
  * @course COSC 4P14
  * @assignment #2
  * @student Id 7242530
- * @since Oct 22nd , 2024
+ * @since Oct 25th , 2024
  */
 
 public class UDPConnectionThread extends Thread{
@@ -101,7 +97,7 @@ public class UDPConnectionThread extends Thread{
                         g.kill();
                     }
                 }else if(s.getMessageType() == MessageType.ACK) {
-                    System.out.println("received an ACK");
+                    System.out.println("received an ACK removing packet fom retransmit buffer");
                     int ack = s.getAcknowledgmentNumber();
                     synchronized (retransmit) {
                         retransmit.removeIf(p -> p.getSequence() == ack - 1);
@@ -110,11 +106,11 @@ public class UDPConnectionThread extends Thread{
                 }else if(s.getMessageType() == MessageType.DATA) {
 
                     if(packet.getAddress().equals(client1Addr) && packet.getPort() == client1Port) {
-                        System.out.print("received DATA from player 1");
+                        System.out.println("received DATA from player 1 and sending ACK");
                         g.insertP1Read(s.getGameData());
                         sendACK(packet, s);
                     }else{
-                        System.out.print("received DATA from player 2");
+                        System.out.println("received DATA from player 2 and sending ACK");
                         g.insertP2Read(s.getGameData());
                         sendACK(packet, s);
                     }
@@ -182,7 +178,7 @@ public class UDPConnectionThread extends Thread{
                             SentPacket sp = retransmit.peek();
                             //for (SentPacket sp : retransmit) {
                             if (System.currentTimeMillis() - sp.getTime() > MAX_TIMEOUT) {
-                                System.out.println("retransmitting");
+                                System.out.println("didn't receive ACK packet lost or out of order... Retransmitting");
                                 serverSocket.send(sp.getPacket());
                                 sp.resetTime();
                             }
@@ -202,7 +198,7 @@ public class UDPConnectionThread extends Thread{
     /**
      * send an ACK to the client
      * @param packet the datagram received from the client
-     * @param s the segment recieved from the client
+     * @param s the segment received from the client
      * @throws IOException
      */
     private void sendACK(DatagramPacket packet, Segment s) throws IOException {
