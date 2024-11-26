@@ -16,10 +16,14 @@ public class ThreadedServer {
     public ThreadedServer(int portNumber){
         try (
                 ServerSocket serverSocket = new ServerSocket(portNumber);
+                //ServerSocket serverSocket = new ServerSocket(portNumber, 50, InetAddress.getByName("0.0.0.0"));
+
         ) {
             while (true) {
                 Socket client1=serverSocket.accept();
+                System.out.println("client 1 Connected");
                 Socket client2=serverSocket.accept();
+                System.out.println("client 2 Connected");
                 new ConnectionThread(client1,client2).start();
             }
         } catch (IOException e) {

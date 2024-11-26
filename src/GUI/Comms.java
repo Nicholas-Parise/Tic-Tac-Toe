@@ -4,13 +4,13 @@ package GUI;
  * @author Nicholas Parise
  * @version 1.0
  * @course COSC 4P14
- * @assignment #2
+ * @assignment #3
  * @student Id 7242530
  * @since Oct 25th , 2024
  */
 
 import Game.GameData;
-import Game.Status;
+import HolePunch.Client;
 
 import java.net.*;
 import java.io.*;
@@ -21,15 +21,28 @@ public class Comms extends Thread{
     boolean canWrite;
     TicTacToe tacToe;
     boolean GameLoop;
+    //String hostName="40.233.81.241";
+    String hostName="localhost";
+    int portNumber=1080;
 
     public Comms(TicTacToe con){
         tacToe = con;
         GameLoop = true;
+        setIPPort();
     }
 
-    String hostName="localhost";
-    int portNumber=1080;
+    public void setIPPort(){
+        String fromServer = Client.getIPPort();
+        String[] args = fromServer.split(" ");
 
+        if(args[0].equals("null")){
+
+
+        }else{
+            hostName = args[0];
+            portNumber = Integer.valueOf(args[1]);
+        }
+    }
 
     public void kill(){
         GameLoop = false;

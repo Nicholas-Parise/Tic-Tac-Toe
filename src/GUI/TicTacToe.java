@@ -29,8 +29,8 @@ public class TicTacToe {
 
     Queue<GameData> WriteBuffer;
 
-    UDPComms com;
-    //Comms com;
+    //UDPComms com;
+    Comms com;
 
     public TicTacToe(){
 
@@ -47,8 +47,8 @@ public class TicTacToe {
         gui = new GUI(this);
         gui.setVisible(true);
 
-        //com = new Comms(this);
-        com = new UDPComms(this);
+        com = new Comms(this);
+        //com = new UDPComms(this);
         com.start();
 
         while (GameLoop){
