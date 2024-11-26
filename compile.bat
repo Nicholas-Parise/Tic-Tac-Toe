@@ -1,1 +1,1 @@
-javac -d build src/GUI/* src/Server/* src/Game/* src/Transport/*
+javac -d build src/GUI/* src/Server/* src/Game/* src/Transport/* src/HolePunch/*
