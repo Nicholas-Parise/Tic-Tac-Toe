@@ -2,7 +2,6 @@ package HolePunch;
 
 import java.io.*;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 /**
  * @author Nicholas Parise
@@ -18,6 +17,13 @@ public class Client {
     private static final int SERVERPORT = 1079;
     private static final String SERVERHOSTNAME = "localhost";
 
+    /**
+     * sends a GET to the server
+     * it will then halt and wait to receive a response
+     *
+     * @return the IP and Port in the form 'IP PORT' both strings
+     * @throws IOException
+     */
     public static String getIPPort() throws IOException{
 
         Socket conn = new Socket(SERVERHOSTNAME, SERVERPORT);
@@ -28,9 +34,9 @@ public class Client {
     }
 
     /**
-     * just send a string message to the client
-     * @param socket
-     * @param message
+     * simple boilerplate function to make sending messages easier
+     * @param socket the server socket
+     * @param message message to send
      */
     private static void sendMessage(Socket socket, String message) {
         try {
@@ -40,7 +46,5 @@ public class Client {
             System.err.println("Error sending message to server");
         }
     }
-
-
 
 }

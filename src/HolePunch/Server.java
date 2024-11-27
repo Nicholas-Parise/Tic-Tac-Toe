@@ -50,11 +50,10 @@ public class Server {
         }
 
     /**
-     * just send a string message to the client
+     * simple boilerplate just send a string message to the socket (client)
      * @param socket
      * @param message
      */
-
     private static void sendMessage(Socket socket, String message) {
         try {
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
@@ -65,11 +64,10 @@ public class Server {
     }
 
     public static void main(String[] args) {
-
+        // add server endpoints IPs and PORTs here
         servers.add(new EndpointRegistry(1080,"localhost")); // server 1
         servers.add(new EndpointRegistry(1080,"localhost")); // server 2
         // in this example it's the same sever since there aren't any other known ones
-
         new Server(1079);
     }
 }

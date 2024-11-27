@@ -30,6 +30,11 @@ public class Comms extends Thread{
         setIPPort();
     }
 
+    /**
+     * uses the HolePunch client to contact the HolePunch server
+     * this gets the host name and port number of the private game server
+     * If it cannot connect it will end the program.
+     */
     public void setIPPort(){
         try {
             String fromServer = Client.getIPPort();
@@ -45,6 +50,11 @@ public class Comms extends Thread{
         GameLoop = false;
     }
 
+    /**
+     * Run the communication thread
+     * Takes in data from the server and parses it
+     * sends data to the server when there is stuff to send in the queue
+     */
     public void run() {
 
         canWrite = false;
