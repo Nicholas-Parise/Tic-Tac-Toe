@@ -68,7 +68,7 @@ public class Server {
 
         servers.add(new EndpointRegistry(1080,"localhost")); // server 1
         servers.add(new EndpointRegistry(1080,"localhost")); // server 2
-        // in this example its the same sever since there aren't any
+        // in this example it's the same sever since there aren't any other known ones
 
         new Server(1079);
     }

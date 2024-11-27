@@ -18,23 +18,13 @@ public class Client {
     private static final int SERVERPORT = 1079;
     private static final String SERVERHOSTNAME = "localhost";
 
-    public static String getIPPort(){
-        try (
-                Socket conn = new Socket(SERVERHOSTNAME, SERVERPORT);
-                BufferedReader serverInput = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        ) {
-            sendMessage(conn,"GET");
+    public static String getIPPort() throws IOException{
 
-            String fromServer = serverInput.readLine();
+        Socket conn = new Socket(SERVERHOSTNAME, SERVERPORT);
+        BufferedReader serverInput = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        sendMessage(conn,"GET");
 
-            return fromServer;
-
-        } catch (UnknownHostException e) {
-            System.out.println("problem with the host name.");
-        } catch (IOException e) {
-            System.out.println("IO error for the connection.");
-        }
-        return "null null";
+        return serverInput.readLine();
     }
 
     /**

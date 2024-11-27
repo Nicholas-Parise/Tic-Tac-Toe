@@ -21,9 +21,8 @@ public class Comms extends Thread{
     boolean canWrite;
     TicTacToe tacToe;
     boolean GameLoop;
-    //String hostName="40.233.81.241";
-    String hostName="localhost";
-    int portNumber=1080;
+    String hostName;
+    int portNumber;
 
     public Comms(TicTacToe con){
         tacToe = con;
@@ -32,15 +31,13 @@ public class Comms extends Thread{
     }
 
     public void setIPPort(){
-        String fromServer = Client.getIPPort();
-        String[] args = fromServer.split(" ");
-
-        if(args[0].equals("null")){
-
-
-        }else{
+        try {
+            String fromServer = Client.getIPPort();
+            String[] args = fromServer.split(" ");
             hostName = args[0];
             portNumber = Integer.valueOf(args[1]);
+        }catch (IOException e){
+            System.out.println("could not establish connection with the Hole Punch Server. \nClosing.....");
         }
     }
 
