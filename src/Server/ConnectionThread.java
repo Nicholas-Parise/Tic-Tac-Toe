@@ -70,7 +70,6 @@ public class ConnectionThread extends Thread{
     }
 
 
-
     private void handleOutput(ObjectOutputStream out1, ObjectOutputStream out2){
         try {
             while (true) {
@@ -90,7 +89,6 @@ public class ConnectionThread extends Thread{
             System.out.println("Connection TERMINATED");
         }
     }
-
 
     /**
      * Turn object into array of bytes
