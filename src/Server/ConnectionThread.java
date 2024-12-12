@@ -1,24 +1,36 @@
 package Server;
 import java.net.*;
 import java.io.*;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
+
 import Game.*;
+
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 
 /**
  * @author Nicholas Parise
  * @version 1.0
  * @course COSC 4P14
- * @assignment #2
+ * @assignment #4
  * @student Id 7242530
- * @since Oct 25th , 2024
+ * @since Dec 11th , 2024
  */
 
 public class ConnectionThread extends Thread{
     private Socket client1,client2;
     private Game g;
+    private SecretKey AESkey;
 
     public ConnectionThread(Socket c1, Socket c2) {
         client1 = c1;
         client2 = c2;
+
+        AESkey = Encryption.generateAES();
 
         g = new Game();
         g.start();
@@ -26,11 +38,14 @@ public class ConnectionThread extends Thread{
 
     public void run() {
         try (
-                ObjectOutputStream out1 = new ObjectOutputStream (client1.getOutputStream());
-                ObjectOutputStream out2 = new ObjectOutputStream (client2.getOutputStream());
-                ObjectInputStream in1 = new ObjectInputStream(client1.getInputStream());
-                ObjectInputStream in2 = new ObjectInputStream(client2.getInputStream());
+                DataOutputStream out1 = new DataOutputStream(client1.getOutputStream());
+                DataOutputStream out2 = new DataOutputStream(client2.getOutputStream());
+                DataInputStream in1 = new DataInputStream(client1.getInputStream());
+                DataInputStream in2 = new DataInputStream(client2.getInputStream());
         ) {
+
+            encryptionHandshake(in1,out1);
+            encryptionHandshake(in2,out2);
 
             handleInput(in1,1);
             handleInput(in2,2);
@@ -43,13 +58,64 @@ public class ConnectionThread extends Thread{
         System.out.println("ended");
     }
 
+    private void encryptionHandshake(DataInputStream in, DataOutputStream out){
 
-    private void handleInput(ObjectInputStream in, int player){
+        PublicKey publicKey;
+
+        try {
+            // receive the clients public key
+            int length = in.readInt();
+            byte[] clientKey = new byte[length];
+            in.readFully(clientKey);
+            System.out.println("receive the clients public key");
+
+            // turn byte client key into public key
+            publicKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(clientKey));
+            System.out.println("turn byte client key into public key");
+
+            // encrypt the AES key with the given RSA key
+            byte[] encryptedAES = Encryption.encryptWithRSA(AESkey.getEncoded(),publicKey);
+            System.out.println("encrypt the AES key with the given RSA key");
+
+            // send the AES key to the client
+            out.writeInt(encryptedAES.length);
+            out.write(encryptedAES);
+            out.flush();
+            System.out.println("sent the AES key to the client");
+            System.out.println(Base64.getEncoder().encodeToString(AESkey.getEncoded()));
+
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+
+    private void handleInput(DataInputStream in, int player){
 
         new Thread(()->{
             while (true) {
                 try {
-                    GameData gd = (GameData) in.readObject();
+                    int length = in.readInt(); // First read the length of the byte array
+                    byte[] data = new byte[length];
+                    in.readFully(data);
+
+                    //GameData gd = GameData.deSerialize(data);
+                    GameData gd = Encryption.decryptWithAES(data,AESkey);
+
+                    System.out.println(System.currentTimeMillis());
+
                     System.out.println("read in "+player);
                     if(player == 1){
                         g.insertP1Read(gd);
@@ -62,25 +128,33 @@ public class ConnectionThread extends Thread{
                         g.kill();
                     }
                     break; // empty or null object end of file
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
                 }
             }
         }).start();
     }
 
 
-    private void handleOutput(ObjectOutputStream out1, ObjectOutputStream out2){
+    private void handleOutput(DataOutputStream out1, DataOutputStream out2){
         try {
             while (true) {
                 synchronized (g) {
                     if (g.isWriteReadyP1()) {
-                        out1.writeObject(g.getP1Write());
-                        out1.flush();
+                        //byte[] data = GameData.serialize(g.getP1Write());
+                        byte[] data = Encryption.encryptWithAES(g.getP1Write(),AESkey);
+
+                        out1.writeInt(data.length); // Send the length of the byte array first
+                        out1.write(data);
+  //                      out1.writeObject(g.getP1Write());
+                       out1.flush();
                     }
 
                     if (g.isWriteReadyP2()) {
-                        out2.writeObject(g.getP2Write());
+                        //byte[] data = GameData.serialize(g.getP2Write());
+                        byte[] data = Encryption.encryptWithAES(g.getP2Write(),AESkey);
+
+                        out2.writeInt(data.length); // Send the length of the byte array first
+                        out2.write(data);
+                        //out2.writeObject(g.getP2Write());
                         out2.flush();
                     }
                 }
@@ -89,43 +163,6 @@ public class ConnectionThread extends Thread{
             System.out.println("Connection TERMINATED");
         }
     }
-
-    /**
-     * Turn object into array of bytes
-     * These bytes are then send or reviewed
-     * @param data
-     * @return
-     */
-    private byte[] serialize(GameData data){
-        try{
-            ByteArrayOutputStream byteStr = new ByteArrayOutputStream();
-            ObjectOutputStream objStr = new ObjectOutputStream(byteStr);
-            objStr.writeObject(data);
-            objStr.flush();
-            return byteStr.toByteArray();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    /**
-     * turn stream of bytes into an object
-     * @param data
-     * @return
-     */
-    private GameData deSerialize(byte[] data){
-        try {
-            ByteArrayInputStream byteStr = new ByteArrayInputStream(data);
-            ObjectInputStream objStr = new ObjectInputStream(byteStr);
-            GameData gd = (GameData) objStr.readObject();
-            return gd;
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
 
 
 }

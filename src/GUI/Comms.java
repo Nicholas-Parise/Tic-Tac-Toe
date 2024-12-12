@@ -4,17 +4,25 @@ package GUI;
  * @author Nicholas Parise
  * @version 1.0
  * @course COSC 4P14
- * @assignment #3
+ * @assignment #4
  * @student Id 7242530
- * @since Oct 25th , 2024
+ * @since Dec 11th , 2024
  */
 
+import Game.Encryption;
 import Game.GameData;
 import HolePunch.Client;
 
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.net.*;
 import java.io.*;
 import java.lang.Thread;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 
 public class Comms extends Thread{
 
@@ -23,10 +31,13 @@ public class Comms extends Thread{
     boolean GameLoop;
     String hostName;
     int portNumber;
+    private KeyPair RSAkey;
+    SecretKey AESkey;
 
     public Comms(TicTacToe con){
         tacToe = con;
         GameLoop = true;
+        RSAkey = Encryption.generateRSA();
         setIPPort();
     }
 
@@ -62,9 +73,12 @@ public class Comms extends Thread{
         try (
                 Socket conn = new Socket(hostName, portNumber);
 
-                ObjectOutputStream sockOut = new ObjectOutputStream (conn.getOutputStream());
-                ObjectInputStream sockIn = new ObjectInputStream(conn.getInputStream());
+                DataOutputStream sockOut = new DataOutputStream (conn.getOutputStream());
+                DataInputStream sockIn = new DataInputStream(conn.getInputStream());
         ) {
+
+            encryptionHandshake(sockIn, sockOut);
+
             while (GameLoop) {
 
                 if (Thread.interrupted()) {
@@ -74,7 +88,13 @@ public class Comms extends Thread{
                 if(!canWrite) {
 
                     try {
-                        GameData fromServer = (GameData)sockIn.readObject();
+
+                        int length = sockIn.readInt(); // First read the length of the byte array
+                        byte[] data = new byte[length];
+                        sockIn.readFully(data);
+
+                        //GameData fromServer = GameData.deSerialize(data);
+                        GameData fromServer = Encryption.decryptWithAES(data,AESkey);
 
                         if(fromServer == null){
                             break;
@@ -86,8 +106,6 @@ public class Comms extends Thread{
                         tacToe.GameLoop = false;
                         conn.close();
                         break; // empty or null object end of file
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
                     }
                 }
 
@@ -97,9 +115,17 @@ public class Comms extends Thread{
 
                 if(canWrite && tacToe.isDataReady()){
                     canWrite = false;
-                    sockOut.writeObject(tacToe.getSendToServer());
+
+                    //byte[] data = GameData.serialize(tacToe.getSendToServer());
+                    byte[] data = Encryption.encryptWithAES(tacToe.getSendToServer(),AESkey);
+                    sockOut.writeInt(data.length); // Send the length of the byte array first
+                    sockOut.write(data);
                     sockOut.flush();
+                    System.out.println(System.currentTimeMillis());
                 }
+
+
+
             }
         } catch (UnknownHostException e) {
             System.out.println("problem with the host name.");
@@ -142,5 +168,40 @@ public class Comms extends Thread{
                 break;
         }
     }
+
+
+    private void encryptionHandshake(DataInputStream in, DataOutputStream out){
+
+        try {
+            // send the public key to the server unencrypted
+            out.writeInt(RSAkey.getPublic().getEncoded().length);
+            out.write(RSAkey.getPublic().getEncoded());
+            out.flush();
+            System.out.println("send the public key to the server unencrypted");
+
+            // receive the servers public key
+            int length = in.readInt(); // First read the length of the byte array
+            byte[] data = new byte[length];
+            in.readFully(data);
+            System.out.println("receive the servers public key");
+
+            // decrypt to get our regular byte stream
+            byte[] decryptedAES = Encryption.decryptWithRSA(data,RSAkey.getPrivate());
+            System.out.println("decrypt to get our regular byte stream");
+
+            // turn byte array into AES key and update
+            AESkey = new SecretKeySpec(decryptedAES, 0, decryptedAES.length, "AES");
+            System.out.println("turn byte array into AES key and update");
+            System.out.println(Base64.getEncoder().encodeToString(AESkey.getEncoded()));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
 
 }

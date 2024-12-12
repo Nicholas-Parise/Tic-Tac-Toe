@@ -1,16 +1,37 @@
 package Game;
 
 import javax.crypto.*;
+import javax.net.ssl.KeyManager;
 import java.io.*;
 import java.security.*;
 
 public class Encryption {
 
+    /**
+     * @author Nicholas Parise
+     * @version 1.0
+     * @course COSC 4P14
+     * @assignment #4
+     * @student Id 7242530
+     * @since Dec 11th , 2024
+     */
 
-    public static KeyPair generateRSA() throws NoSuchAlgorithmException {
-        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
-        keyGen.initialize(2048);
-        return keyGen.generateKeyPair();
+    public static SecretKey generateAES(){
+        try{
+        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+        keyGen.init(256);
+        return keyGen.generateKey();
+        }catch (NoSuchAlgorithmException e){}
+        return null;
+    }
+
+    public static KeyPair generateRSA(){
+       try {
+           KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+           keyGen.initialize(2048);
+           return keyGen.generateKeyPair();
+       }catch (NoSuchAlgorithmException e){}
+       return null;
     }
 
     public static byte[] encryptWithRSA(byte[] data, PublicKey publicKey) throws Exception {
@@ -33,16 +54,20 @@ public class Encryption {
      * @param data
      * @return
      */
-    public static byte[] encryptWithAES(GameData data, SecretKey key) throws Exception{
+    public static byte[] encryptWithAES(GameData data, SecretKey key){
+        try {
+            ByteArrayOutputStream byteStr = new ByteArrayOutputStream();
+            ObjectOutputStream objStr = new ObjectOutputStream(byteStr);
+            objStr.writeObject(data);
+            objStr.flush();
 
-        ByteArrayOutputStream byteStr = new ByteArrayOutputStream();
-        ObjectOutputStream objStr = new ObjectOutputStream(byteStr);
-        objStr.writeObject(data);
-        objStr.flush();
-
-        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-        cipher.init(Cipher.ENCRYPT_MODE,key);
-        return cipher.doFinal(byteStr.toByteArray());
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, key);
+            return cipher.doFinal(byteStr.toByteArray());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**
@@ -50,16 +75,20 @@ public class Encryption {
      * @param data
      * @return
      */
-    public static GameData decryptWithAES(byte[] data, SecretKey key) throws Exception{
+    public static GameData decryptWithAES(byte[] data, SecretKey key){
+        try {
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.DECRYPT_MODE, key);
+            byte[] decryptedData = cipher.doFinal(data);
 
-        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-        cipher.init(Cipher.DECRYPT_MODE,key);
-        byte[] decryptedData = cipher.doFinal(data);
-
-        ByteArrayInputStream byteStr = new ByteArrayInputStream(decryptedData);
-        ObjectInputStream objStr = new ObjectInputStream(byteStr);
-        GameData gd = (GameData) objStr.readObject();
-        return gd;
+            ByteArrayInputStream byteStr = new ByteArrayInputStream(decryptedData);
+            ObjectInputStream objStr = new ObjectInputStream(byteStr);
+            GameData gd = (GameData) objStr.readObject();
+            return gd;
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }
