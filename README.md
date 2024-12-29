@@ -26,7 +26,9 @@ The second client is then prompted for their response and this process is repeat
 <img title="image of game" src="example.png" />
 
 <h1>Running</h1>
-* Compile the files
-* Run run-holepunchserver.bat first
-* Run run-server.bat second
-* Then Run two instances of the client to play.
+    <ul>
+      <li>Compile the files</li>
+      <li>Run run-holepunchserver.bat first</li>
+     <li>Run run-server.bat second</li>
+    <li>Then Run two instances of the client to play.</li>
+  </ul>
